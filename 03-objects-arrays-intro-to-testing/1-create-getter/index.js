@@ -8,7 +8,7 @@ export function createGetter(path) {
     const getter = (obj) => {
         let current = obj;
         for (const prop of props) {
-            if (typeof current === 'undefined') {
+            if (current === undefined) {
                 break;
             }
             current = current[prop];
