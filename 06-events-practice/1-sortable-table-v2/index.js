@@ -1,6 +1,10 @@
 export default class SortableTable {
     element;
     subElements = {};
+    order = {
+        asc: 1,
+        desc: -1
+    };
     
     constructor(
         header = [],
@@ -8,6 +12,11 @@ export default class SortableTable {
     ) {
         this.header = header;
         this.data = data;
+        this.sortMethod = {
+            'string': this.sortByString,
+            'number': this.sortByNumber
+        }
+
         this.render();
         this.initEventListeners();
     }
@@ -137,39 +146,24 @@ export default class SortableTable {
 
     sort(fieldValue, orderValue) {
         const sortedData = [...this.data];
-        let order;
-        switch(orderValue) {
-            case 'asc': 
-                order = 1;
-                break;
-            case 'desc': 
-                order = -1;
-                break;
-        }
-
         const sortType = this.header.find((item) => {
             return item.id === fieldValue;
         }).sortType;
-
-        let callback = () => {};
-        switch(sortType) {
-            case 'string': 
-                callback = (a, b) => {
-                    return a.localeCompare(b, ['ru', 'en'], {caseFirst: 'upper'});
-                };
-                break;
-            case 'number': 
-                callback = (a, b) => {
-                    return a - b;
-                };
-                break;
-        }
+        const sortMethod = this.sortMethod[sortType];
 
         sortedData.sort((a, b) => {
-            return callback(a[fieldValue], b[fieldValue]) * order;
+            return sortMethod(a[fieldValue], b[fieldValue]) * this.order[orderValue];
         });
 
         this.subElements.body.innerHTML = this.renderData(sortedData).join('');
+    }
+
+    sortByString(a, b) {
+        return a.localeCompare(b, ['ru', 'en'], {caseFirst: 'upper'});
+    }
+
+    sortByNumber(a, b) {
+        return a - b;
     }
 
     remove() {
